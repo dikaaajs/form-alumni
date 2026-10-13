@@ -414,7 +414,6 @@ export default function Home() {
           {form.colleagues.map((c, i) => {
             const age = c.birthDate ? ageOnDate(c.birthDate) : null;
             const eligible = age !== null && age >= 18;
-            console.log(eligible);
             return (
               <Card
                 key={i}
@@ -454,10 +453,6 @@ export default function Home() {
                       onChange={(e) => {
                         const value = e.target.value;
                         const ageNow = ageOnDate(value);
-
-                        console.log("Tanggal dipilih:", value);
-                        console.log("Hasil perhitungan umur:", ageNow);
-                        console.log("Memenuhi syarat:", ageNow >= 18);
 
                         updateColleague(i, "birthDate", value);
 

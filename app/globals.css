@@ -21,6 +21,14 @@
   --color-ring: var(--ring);
 }
 
+@font-face {
+  font-family: "Satoshi";
+  src: url("/fonts/Satoshi-Variable.ttf") format("truetype");
+  font-weight: 300 900;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root {
   color-scheme: light;
   --background: #f8f7f6;
@@ -43,14 +51,24 @@
   --ring: #a64c4c;
 }
 
-* { box-sizing: border-box; }
-html { scroll-behavior: smooth; }
+* {
+  box-sizing: border-box;
+}
+html {
+  scroll-behavior: smooth;
+}
 body {
   margin: 0;
   background:
-    radial-gradient(ellipse at top left, rgba(118, 9, 9, .06), transparent 34rem),
+    radial-gradient(
+      ellipse at top left,
+      rgba(118, 9, 9, 0.06),
+      transparent 34rem
+    ),
     var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: "Satoshi", sans-serif;
 }
-::selection { background: rgba(118, 9, 9, .16); }
+::selection {
+  background: rgba(118, 9, 9, 0.16);
+}
