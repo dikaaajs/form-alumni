@@ -1,0 +1,5 @@
+[inviter]
+id_inviter	submitted_at	nama_alumni	program	tahun_program	whatsapp_alumni	email_alumni	kota_alumni	sosial_media_alumni
+
+[calonSTC]
+id_calonSTC	inviter_id	nama_calonSTC	tanggal_lahir	pekerjaan	nama_perusahaan	email	whatsapp	kota	sosial_media

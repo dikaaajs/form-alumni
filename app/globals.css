@@ -21,14 +21,6 @@
   --color-ring: var(--ring);
 }
 
-@font-face {
-  font-family: "Satoshi";
-  src: url("/fonts/Satoshi-Variable.ttf") format("truetype");
-  font-weight: 300 900;
-  font-style: normal;
-  font-display: swap;
-}
-
 :root {
   color-scheme: light;
   --background: #f8f7f6;
@@ -49,6 +41,14 @@
   --border: #e7dede;
   --input: #ded4d4;
   --ring: #a64c4c;
+}
+
+@font-face {
+  font-family: "Satoshi";
+  src: url("/fonts/Satoshi-Variable.ttf") format("truetype");
+  font-weight: 300 900;
+  font-style: normal;
+  font-display: swap;
 }
 
 * {
