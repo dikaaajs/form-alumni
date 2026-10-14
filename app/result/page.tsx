@@ -11,10 +11,17 @@ import {
   LockKeyhole,
   ArrowUpRight,
   ClipboardList,
+  BriefcaseBusiness,
 } from "lucide-react";
 
 type RowData = Record<string, string>;
-type ResultData = { inviters: RowData[]; calon: RowData[] };
+type ResultData = {
+  inviters: RowData[];
+  calon: RowData[];
+  invitersPro: RowData[];
+  calonPro: RowData[];
+};
+type TabKey = "calon" | "inviter" | "calonPro" | "inviterPro";
 const field = (row: RowData, ...keys: string[]) => {
   for (const key of keys) if (row[key]) return row[key];
   return "";
@@ -40,11 +47,18 @@ function WhatsAppLink({ value }: { value: string }) {
     </a>
   );
 }
+const tabLabels: Record<TabKey, string> = {
+  calon: "Calon STC Alumni",
+  inviter: "Inviter Alumni",
+  calonPro: "Calon STC Profesional",
+  inviterPro: "Invitor Profesional",
+};
+
 export default function ResultPage() {
   const [accessKey, setAccessKey] = useState("");
   const [data, setData] = useState<ResultData | any>(null);
   const [query, setQuery] = useState("");
-  const [tab, setTab] = useState<"calon" | "inviter">("calon");
+  const [tab, setTab] = useState<TabKey>("calon");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [authorized, setAuthorized] = useState(false);
@@ -61,7 +75,12 @@ export default function ResultPage() {
         const body = await response.json();
         if (!response.ok)
           throw new Error(body.error || "Tidak dapat memuat data.");
-        setData(body);
+        setData({
+          inviters: body.inviters || [],
+          calon: body.calon || [],
+          invitersPro: body.invitersPro || [],
+          calonPro: body.calonPro || [],
+        });
         setAuthorized(true);
       } catch (e) {
         setError(e instanceof Error ? e.message : "Terjadi kesalahan.");
@@ -83,11 +102,27 @@ export default function ResultPage() {
       ),
     [data],
   );
+  const inviterProMap = useMemo(
+    () =>
+      new Map(
+        (data?.invitersPro || []).map((row: any) => [
+          field(row, "id_invitorPro"),
+          row,
+        ]),
+      ),
+    [data],
+  );
+  const matches = (row: RowData, keys: string[]) =>
+    keys
+      .map((key) => field(row, key))
+      .join(" ")
+      .toLowerCase()
+      .includes(query.toLowerCase());
   const filteredCalon = useMemo(
     () =>
       (data?.calon || []).filter((row: any) => {
         const inviter: any = inviterMap.get(field(row, "inviter_id")) || {};
-        const haystack = [
+        return [
           field(row, "nama_calonSTC", "nama_calonstc"),
           field(row, "email"),
           field(row, "whatsapp"),
@@ -97,24 +132,59 @@ export default function ResultPage() {
           field(row, "inviter_id"),
         ]
           .join(" ")
-          .toLowerCase();
-        return haystack.includes(query.toLowerCase());
+          .toLowerCase()
+          .includes(query.toLowerCase());
       }),
     [data, inviterMap, query],
   );
   const filteredInviters = useMemo(
     () =>
       (data?.inviters || []).filter((row: any) =>
-        [
-          field(row, "nama_alumni"),
-          field(row, "whatsapp_alumni"),
-          field(row, "email_alumni"),
-          field(row, "kota_alumni"),
-          field(row, "id_inviter"),
+        matches(row, [
+          "nama_alumni",
+          "whatsapp_alumni",
+          "email_alumni",
+          "kota_alumni",
+          "id_inviter",
+          "program",
+        ]),
+      ),
+    [data, query],
+  );
+  const filteredCalonPro = useMemo(
+    () =>
+      (data?.calonPro || []).filter((row: any) => {
+        const inviter: any =
+          inviterProMap.get(field(row, "invitorPro_id")) || {};
+        return [
+          field(row, "nama_calonSTC", "nama_calonstc"),
+          field(row, "email"),
+          field(row, "whatsapp"),
+          field(row, "kota"),
+          field(row, "nama_perusahaan"),
+          field(inviter, "nama_profesional"),
+          field(inviter, "nama_perusahaan"),
+          field(inviter, "jabatan"),
+          field(row, "invitorPro_id"),
         ]
           .join(" ")
           .toLowerCase()
-          .includes(query.toLowerCase()),
+          .includes(query.toLowerCase());
+      }),
+    [data, inviterProMap, query],
+  );
+  const filteredInvitersPro = useMemo(
+    () =>
+      (data?.invitersPro || []).filter((row: any) =>
+        matches(row, [
+          "nama_profesional",
+          "nama_perusahaan",
+          "jabatan",
+          "whatsapp",
+          "email",
+          "kota",
+          "id_invitorPro",
+        ]),
       ),
     [data, query],
   );
@@ -133,7 +203,8 @@ export default function ResultPage() {
             Data pendaftaran
           </h1>
           <p className="mt-2 text-sm leading-6 text-stone-500">
-            Masukkan kunci akses admin untuk melihat data alumni dan calon STC.
+            Masukkan kunci akses admin untuk melihat data alumni, profesional,
+            dan calon STC.
           </p>
           <form
             className="mt-6 space-y-3"
@@ -178,9 +249,11 @@ export default function ResultPage() {
       </main>
     );
 
+  const totalInviters = data.inviters.length + data.invitersPro.length;
+  const totalCalon = data.calon.length + data.calonPro.length;
   return (
-    <main className="min-h-screen px-4 py-8 md:px-8">
-      <div className="mx-auto max-w-7xl">
+    <main className="min-h-screen bg-stone-50/60 px-4 py-8 md:px-8">
+      <div className="mx-auto max-w-[1500px]">
         <header className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
           <div>
             <p className="text-xs font-bold uppercase tracking-[.22em] text-[#760909]">
@@ -190,8 +263,8 @@ export default function ResultPage() {
               Data pendaftaran
             </h1>
             <p className="mt-2 text-sm text-stone-500">
-              Kelola data alumni pengundang dan calon peserta dalam satu
-              tampilan.
+              Pantau pendaftar dari jalur alumni dan profesional dalam satu
+              dashboard.
             </p>
           </div>
           <button
@@ -203,59 +276,61 @@ export default function ResultPage() {
             Perbarui data
           </button>
         </header>
-        <section className="mt-8 grid gap-4 sm:grid-cols-2">
-          <div className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-stone-500">
-                Total alumni pengundang
-              </span>
-              <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#760909]/10 text-[#760909]">
-                <UserRound size={20} />
-              </span>
-            </div>
-            <p className="mt-3 text-3xl font-bold tracking-tight text-stone-900">
-              {data.inviters.length}
-            </p>
-            <p className="mt-1 text-xs text-stone-400">
-              Data pada sheet inviter
-            </p>
-          </div>
-          <div className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-stone-500">
-                Total calon STC
-              </span>
-              <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700">
-                <Users size={20} />
-              </span>
-            </div>
-            <p className="mt-3 text-3xl font-bold tracking-tight text-stone-900">
-              {data.calon.length}
-            </p>
-            <p className="mt-1 text-xs text-stone-400">
-              Data pada sheet calonSTC
-            </p>
-          </div>
+        <section className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <Stat
+            label="Total pengundang"
+            value={totalInviters}
+            note={`${data.inviters.length} alumni · ${data.invitersPro.length} profesional`}
+            icon={<UserRound size={20} />}
+            tone="maroon"
+          />
+          <Stat
+            label="Total calon STC"
+            value={totalCalon}
+            note={`${data.calon.length} dari alumni · ${data.calonPro.length} dari profesional`}
+            icon={<Users size={20} />}
+            tone="green"
+          />
+          <Stat
+            label="Pengundang profesional"
+            value={data.invitersPro.length}
+            note="Sheet invitorPro"
+            icon={<BriefcaseBusiness size={20} />}
+            tone="teal"
+          />
+          <Stat
+            label="Calon STC profesional"
+            value={data.calonPro.length}
+            note="Sheet calonSTCPro"
+            icon={<ClipboardList size={20} />}
+            tone="teal"
+          />
         </section>
         <section className="mt-6 overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-sm">
-          <div className="flex flex-col gap-4 border-b border-stone-100 p-4 md:flex-row md:items-center md:justify-between md:p-5">
-            <div className="inline-flex w-fit rounded-xl bg-stone-100 p-1">
-              <button
-                onClick={() => setTab("calon")}
-                className={`rounded-lg px-4 py-2 text-sm font-semibold transition ${tab === "calon" ? "bg-white text-[#760909] shadow-sm" : "text-stone-500 hover:text-stone-800"}`}
-              >
-                Calon STC{" "}
-                <span className="ml-1 text-xs">{data.calon.length}</span>
-              </button>
-              <button
-                onClick={() => setTab("inviter")}
-                className={`rounded-lg px-4 py-2 text-sm font-semibold transition ${tab === "inviter" ? "bg-white text-[#760909] shadow-sm" : "text-stone-500 hover:text-stone-800"}`}
-              >
-                Inviter{" "}
-                <span className="ml-1 text-xs">{data.inviters.length}</span>
-              </button>
+          <div className="flex flex-col gap-4 border-b border-stone-100 p-4 md:p-5">
+            <div className="flex flex-wrap gap-1.5 rounded-xl bg-stone-100 p-1">
+              {(["calon", "inviter", "calonPro", "inviterPro"] as TabKey[]).map(
+                (key) => (
+                  <button
+                    key={key}
+                    onClick={() => setTab(key)}
+                    className={`rounded-lg px-3 py-2 text-sm font-semibold transition ${tab === key ? (key.endsWith("Pro") ? "bg-white text-teal-800 shadow-sm" : "bg-white text-[#760909] shadow-sm") : "text-stone-500 hover:text-stone-800"}`}
+                  >
+                    {tabLabels[key]}{" "}
+                    <span className="ml-1 text-xs">
+                      {key === "calon"
+                        ? data.calon.length
+                        : key === "inviter"
+                          ? data.inviters.length
+                          : key === "calonPro"
+                            ? data.calonPro.length
+                            : data.invitersPro.length}
+                    </span>
+                  </button>
+                ),
+              )}
             </div>
-            <div className="relative w-full md:max-w-sm">
+            <div className="relative w-full md:max-w-md">
               <Search
                 size={17}
                 className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400"
@@ -263,8 +338,8 @@ export default function ResultPage() {
               <input
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="Cari nama, WhatsApp, email…"
-                className="h-10 w-full rounded-xl border border-stone-200 bg-stone-50 pl-9 pr-3 text-sm outline-none focus:border-[#760909] focus:ring-4 focus:ring-[#760909]/10"
+                placeholder="Cari nama, WhatsApp, email, perusahaan…"
+                className="h-10 w-full rounded-xl border border-stone-200 bg-stone-50 pl-9 pr-3 text-sm outline-none focus:border-stone-400 focus:ring-4 focus:ring-stone-100"
               />
             </div>
           </div>
@@ -272,16 +347,20 @@ export default function ResultPage() {
             <p className="text-xs text-stone-500">
               {tab === "calon"
                 ? `${filteredCalon.length} calon STC ditampilkan`
-                : `${filteredInviters.length} inviter ditampilkan`}
+                : tab === "inviter"
+                  ? `${filteredInviters.length} inviter ditampilkan`
+                  : tab === "calonPro"
+                    ? `${filteredCalonPro.length} calon STC profesional ditampilkan`
+                    : `${filteredInvitersPro.length} profesional ditampilkan`}
             </p>
             <span className="inline-flex items-center gap-1.5 text-xs text-stone-400">
               <ClipboardList size={14} /> Data Google Sheets
             </span>
           </div>
           <div className="overflow-x-auto">
-            {tab === "calon" ? (
-              <table className="w-full min-w-[1100px] border-collapse text-left text-sm">
-                <thead className="bg-stone-50 text-xs uppercase tracking-wide text-stone-500">
+            {tab === "calon" && (
+              <table className="w-full min-w-[1050px] border-collapse text-left text-sm">
+                <thead>
                   <tr>
                     {[
                       "Calon STC",
@@ -291,78 +370,58 @@ export default function ResultPage() {
                       "Alumni pengundang",
                       "ID Inviter",
                     ].map((h) => (
-                      <th key={h} className="px-5 py-3.5 font-semibold">
-                        {h}
-                      </th>
+                      <Th key={h}>{h}</Th>
                     ))}
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-stone-100">
+                <tbody>
                   {filteredCalon.map((row: any, i: any) => {
                     const inviter: any =
                       inviterMap.get(field(row, "inviter_id")) || {};
                     return (
                       <tr
                         key={field(row, "id_calonSTC") || i}
-                        className="transition hover:bg-stone-50/80"
+                        className="hover:bg-stone-50"
                       >
-                        <td className="px-5 py-4">
-                          <p className="font-semibold text-stone-900">
+                        <Td>
+                          <MainText>
                             {field(row, "nama_calonSTC", "nama_calonstc") ||
                               "—"}
-                          </p>
-                          <p className="mt-1 text-xs text-stone-400">
+                          </MainText>
+                          <SubText>
                             {field(row, "email") || "Email belum tersedia"}
-                          </p>
-                        </td>
-                        <td className="px-5 py-4">
-                          <p className="text-stone-700">
-                            {field(row, "pekerjaan") || "—"}
-                          </p>
-                          <p className="mt-1 text-xs text-stone-400">
+                          </SubText>
+                        </Td>
+                        <Td>
+                          <MainText>{field(row, "pekerjaan") || "—"}</MainText>
+                          <SubText>
                             {field(row, "nama_perusahaan") || "—"}
-                          </p>
-                        </td>
-                        <td className="px-5 py-4">
-                          <p className="mb-2 text-stone-700">
-                            {field(row, "whatsapp") || "—"}
-                          </p>
+                          </SubText>
+                        </Td>
+                        <Td>
+                          <MainText>{field(row, "whatsapp") || "—"}</MainText>
                           <WhatsAppLink value={field(row, "whatsapp")} />
-                        </td>
-                        <td className="px-5 py-4 text-stone-600">
-                          {field(row, "kota") || "—"}
-                        </td>
-                        <td className="px-5 py-4">
-                          <p className="font-medium text-stone-800">
+                        </Td>
+                        <Td>{field(row, "kota") || "—"}</Td>
+                        <Td>
+                          <MainText>
                             {field(inviter, "nama_alumni") || "Tidak ditemukan"}
-                          </p>
-                          <p className="mt-1 text-xs text-stone-400">
-                            {field(inviter, "whatsapp_alumni")}
-                          </p>
-                        </td>
-                        <td className="px-5 py-4">
-                          <code className="rounded-md bg-stone-100 px-2 py-1 text-[11px] text-stone-600">
-                            {field(row, "inviter_id") || "—"}
-                          </code>
-                        </td>
+                          </MainText>
+                          <SubText>{field(inviter, "whatsapp_alumni")}</SubText>
+                        </Td>
+                        <Td>
+                          <Id value={field(row, "inviter_id")} />
+                        </Td>
                       </tr>
                     );
                   })}
-                  {filteredCalon.length === 0 && (
-                    <tr>
-                      <td
-                        colSpan={6}
-                        className="px-5 py-14 text-center text-sm text-stone-400"
-                      >
-                        Tidak ada data yang cocok dengan pencarian.
-                      </td>
-                    </tr>
-                  )}
+                  {filteredCalon.length === 0 && <Empty cols={6} />}
                 </tbody>
               </table>
-            ) : (
+            )}
+            {tab === "inviter" && (
               <table className="w-full min-w-[900px] border-collapse text-left text-sm">
-                <thead className="bg-stone-50 text-xs uppercase tracking-wide text-stone-500">
+                <thead>
                   <tr>
                     {[
                       "Alumni",
@@ -372,90 +431,300 @@ export default function ResultPage() {
                       "ID Inviter",
                       "Jumlah rekan",
                     ].map((h) => (
-                      <th key={h} className="px-5 py-3.5 font-semibold">
-                        {h}
-                      </th>
+                      <Th key={h}>{h}</Th>
                     ))}
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-stone-100">
+                <tbody>
                   {filteredInviters.map((row: any, i: any) => {
                     const id = field(row, "id_inviter");
                     return (
-                      <tr
-                        key={id || i}
-                        className="transition hover:bg-stone-50/80"
-                      >
-                        <td className="px-5 py-4">
-                          <p className="font-semibold text-stone-900">
+                      <tr key={id || i} className="hover:bg-stone-50">
+                        <Td>
+                          <MainText>
                             {field(row, "nama_alumni") || "—"}
-                          </p>
-                          <p className="mt-1 text-xs text-stone-400">
-                            {field(row, "email_alumni")}
-                          </p>
-                        </td>
-                        <td className="px-5 py-4">
-                          <p className="text-stone-700">
-                            {field(row, "program") || "—"}
-                          </p>
-                          <p className="mt-1 text-xs text-stone-400">
-                            {field(row, "tahun_program")}
-                          </p>
-                        </td>
-                        <td className="px-5 py-4">
-                          <p className="mb-2 text-stone-700">
+                          </MainText>
+                          <SubText>{field(row, "email_alumni")}</SubText>
+                        </Td>
+                        <Td>
+                          <MainText>{field(row, "program") || "—"}</MainText>
+                          <SubText>{field(row, "tahun_program")}</SubText>
+                        </Td>
+                        <Td>
+                          <MainText>
                             {field(row, "whatsapp_alumni") || "—"}
-                          </p>
+                          </MainText>
                           <WhatsAppLink value={field(row, "whatsapp_alumni")} />
-                        </td>
-                        <td className="px-5 py-4 text-stone-600">
-                          {field(row, "kota_alumni") || "—"}
-                        </td>
-                        <td className="px-5 py-4">
-                          <code className="rounded-md bg-stone-100 px-2 py-1 text-[11px] text-stone-600">
-                            {id || "—"}
-                          </code>
-                        </td>
-                        <td className="px-5 py-4">
-                          <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700">
+                        </Td>
+                        <Td>{field(row, "kota_alumni") || "—"}</Td>
+                        <Td>
+                          <Id value={id} />
+                        </Td>
+                        <Td>
+                          <Pill>
                             {
                               data.calon.filter(
                                 (c: any) => field(c, "inviter_id") === id,
                               ).length
                             }{" "}
                             calon
-                          </span>
-                        </td>
+                          </Pill>
+                        </Td>
                       </tr>
                     );
                   })}
-                  {filteredInviters.length === 0 && (
-                    <tr>
-                      <td
-                        colSpan={6}
-                        className="px-5 py-14 text-center text-sm text-stone-400"
+                  {filteredInviters.length === 0 && <Empty cols={6} />}
+                </tbody>
+              </table>
+            )}
+            {tab === "calonPro" && (
+              <table className="w-full min-w-[1100px] border-collapse text-left text-sm">
+                <thead>
+                  <tr>
+                    {[
+                      "Calon STC",
+                      "Pekerjaan / Perusahaan",
+                      "Kontak",
+                      "Kota",
+                      "Profesional pengundang",
+                      "Perusahaan / Jabatan",
+                      "ID InvitorPro",
+                    ].map((h) => (
+                      <Th key={h} tone="teal">
+                        {h}
+                      </Th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredCalonPro.map((row: any, i: any) => {
+                    const inviter: any =
+                      inviterProMap.get(field(row, "invitorPro_id")) || {};
+                    return (
+                      <tr
+                        key={field(row, "id_calonSTCPro") || i}
+                        className="hover:bg-teal-50/40"
                       >
-                        Tidak ada data yang cocok dengan pencarian.
-                      </td>
-                    </tr>
-                  )}
+                        <Td>
+                          <MainText>
+                            {field(row, "nama_calonSTC", "nama_calonstc") ||
+                              "—"}
+                          </MainText>
+                          <SubText>
+                            {field(row, "email") || "Email belum tersedia"}
+                          </SubText>
+                        </Td>
+                        <Td>
+                          <MainText>{field(row, "pekerjaan") || "—"}</MainText>
+                          <SubText>
+                            {field(row, "nama_perusahaan") || "—"}
+                          </SubText>
+                        </Td>
+                        <Td>
+                          <MainText>{field(row, "whatsapp") || "—"}</MainText>
+                          <WhatsAppLink value={field(row, "whatsapp")} />
+                        </Td>
+                        <Td>{field(row, "kota") || "—"}</Td>
+                        <Td>
+                          <MainText>
+                            {field(inviter, "nama_profesional") ||
+                              "Tidak ditemukan"}
+                          </MainText>
+                          <SubText>{field(inviter, "whatsapp")}</SubText>
+                        </Td>
+                        <Td>
+                          <MainText>
+                            {field(inviter, "nama_perusahaan") || "—"}
+                          </MainText>
+                          <SubText>{field(inviter, "jabatan")}</SubText>
+                        </Td>
+                        <Td>
+                          <Id value={field(row, "invitorPro_id")} />
+                        </Td>
+                      </tr>
+                    );
+                  })}
+                  {filteredCalonPro.length === 0 && <Empty cols={7} />}
+                </tbody>
+              </table>
+            )}
+            {tab === "inviterPro" && (
+              <table className="w-full min-w-[1000px] border-collapse text-left text-sm">
+                <thead>
+                  <tr>
+                    {[
+                      "Profesional",
+                      "Perusahaan",
+                      "Jabatan",
+                      "Kontak",
+                      "Kota",
+                      "ID InvitorPro",
+                      "Jumlah rekan",
+                    ].map((h) => (
+                      <Th key={h} tone="teal">
+                        {h}
+                      </Th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredInvitersPro.map((row: any, i: any) => {
+                    const id = field(row, "id_invitorPro");
+                    return (
+                      <tr key={id || i} className="hover:bg-teal-50/40">
+                        <Td>
+                          <MainText>
+                            {field(row, "nama_profesional") || "—"}
+                          </MainText>
+                          <SubText>{field(row, "email")}</SubText>
+                        </Td>
+                        <Td>{field(row, "nama_perusahaan") || "—"}</Td>
+                        <Td>{field(row, "jabatan") || "—"}</Td>
+                        <Td>
+                          <MainText>{field(row, "whatsapp") || "—"}</MainText>
+                          <WhatsAppLink value={field(row, "whatsapp")} />
+                        </Td>
+                        <Td>{field(row, "kota") || "—"}</Td>
+                        <Td>
+                          <Id value={id} />
+                        </Td>
+                        <Td>
+                          <Pill tone="teal">
+                            {
+                              data.calonPro.filter(
+                                (c: any) => field(c, "invitorPro_id") === id,
+                              ).length
+                            }{" "}
+                            calon
+                          </Pill>
+                        </Td>
+                      </tr>
+                    );
+                  })}
+                  {filteredInvitersPro.length === 0 && <Empty cols={7} />}
                 </tbody>
               </table>
             )}
           </div>
           <footer className="flex flex-col gap-1 border-t border-stone-100 bg-stone-50/60 px-5 py-3 text-xs text-stone-400 sm:flex-row sm:items-center sm:justify-between">
+            <span>Nomor WhatsApp menyediakan tombol chat langsung.</span>
             <span className="inline-flex items-center gap-1">
-              Kembali ke formulir{" "}
+              Formulir:{" "}
               <a
                 href="/"
-                className="font-semibold text-[#760909] hover:underline flex"
+                className="font-semibold text-[#760909] hover:underline"
               >
-                Buka formulir <ArrowUpRight size={12} />
+                Alumni <ArrowUpRight size={12} />
+              </a>
+              <span className="mx-1">·</span>
+              <a
+                href="/profesional"
+                className="font-semibold text-teal-700 hover:underline"
+              >
+                Profesional <ArrowUpRight size={12} />
               </a>
             </span>
           </footer>
         </section>
       </div>
     </main>
+  );
+}
+function Stat({
+  label,
+  value,
+  note,
+  icon,
+  tone,
+}: {
+  label: string;
+  value: number;
+  note: string;
+  icon: React.ReactNode;
+  tone: "maroon" | "green" | "teal";
+}) {
+  const color =
+    tone === "maroon"
+      ? "bg-[#760909]/10 text-[#760909]"
+      : tone === "teal"
+        ? "bg-teal-50 text-teal-700"
+        : "bg-emerald-50 text-emerald-700";
+  return (
+    <div className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
+      <div className="flex items-center justify-between">
+        <span className="text-sm font-medium text-stone-500">{label}</span>
+        <span
+          className={`flex h-10 w-10 items-center justify-center rounded-xl ${color}`}
+        >
+          {icon}
+        </span>
+      </div>
+      <p className="mt-3 text-3xl font-bold tracking-tight text-stone-900">
+        {value}
+      </p>
+      <p className="mt-1 text-xs text-stone-400">{note}</p>
+    </div>
+  );
+}
+function Th({
+  children,
+  tone = "maroon",
+}: {
+  children: React.ReactNode;
+  tone?: "maroon" | "teal";
+}) {
+  return (
+    <th
+      className={`border-b border-stone-100 px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wide ${tone === "teal" ? "bg-teal-50/70 text-teal-800" : "bg-stone-50 text-stone-500"}`}
+    >
+      {children}
+    </th>
+  );
+}
+function Td({ children }: { children: React.ReactNode }) {
+  return (
+    <td className="border-b border-stone-100 px-5 py-4 align-top text-stone-600">
+      {children}
+    </td>
+  );
+}
+function MainText({ children }: { children: React.ReactNode }) {
+  return <p className="mb-1 font-semibold text-stone-900">{children}</p>;
+}
+function SubText({ children }: { children: React.ReactNode }) {
+  return <p className="mb-2 text-xs text-stone-400">{children}</p>;
+}
+function Id({ value }: { value: string }) {
+  return (
+    <code className="rounded-md bg-stone-100 px-2 py-1 text-[11px] text-stone-600">
+      {value || "—"}
+    </code>
+  );
+}
+function Pill({
+  children,
+  tone = "green",
+}: {
+  children: React.ReactNode;
+  tone?: "green" | "teal";
+}) {
+  return (
+    <span
+      className={`rounded-full px-2.5 py-1 text-xs font-semibold ${tone === "teal" ? "bg-teal-50 text-teal-700" : "bg-emerald-50 text-emerald-700"}`}
+    >
+      {children}
+    </span>
+  );
+}
+function Empty({ cols }: { cols: number }) {
+  return (
+    <tr>
+      <td
+        colSpan={cols}
+        className="px-5 py-14 text-center text-sm text-stone-400"
+      >
+        Tidak ada data yang cocok dengan pencarian.
+      </td>
+    </tr>
   );
 }

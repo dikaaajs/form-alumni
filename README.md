@@ -51,3 +51,13 @@ Catatan: koneksi Google Sheets belum aktif sampai `.env.local` diisi dengan kred
 - Halaman dilindungi kunci akses agar data pribadi tidak dapat dibaca publik. Atur `RESULT_ACCESS_KEY` di `.env.local` dan environment deployment.
 - Tabel menyediakan pencarian, ringkasan jumlah data, pergantian tab, dan tombol **Chat** WhatsApp untuk nomor alumni maupun calon STC.
 - Pastikan baris pertama kedua tab berisi header yang sesuai dengan `google-sheets-headers.tsv`.
+
+
+## Form Profesional
+
+- Form profesional tersedia di `/profesional` dan memakai warna teal/hijau berbeda dari form alumni/trainer.
+- Data pengundang profesional disimpan pada tab `invitorPro`; tiga calon disimpan pada tab `calonSTCPro`.
+- Kolom perusahaan dan jabatan menggantikan pilihan program/tahun pada profil pengundang.
+- Kedua tab profesional akan dibuat otomatis jika belum tersedia, termasuk header kolom pada tab kosong.
+- Setiap calon STC profesional menyimpan `invitorPro_id` yang mengarah ke `id_invitorPro` pengundangnya.
+- Semua kolom wajib diisi; calon harus berusia minimal 18 tahun.

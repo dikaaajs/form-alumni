@@ -72,3 +72,14 @@ body {
 ::selection {
   background: rgba(118, 9, 9, 0.16);
 }
+
+/* Warna khusus halaman profesional, terpisah dari formulir alumni/trainer. */
+.professional-theme {
+  --primary: #0f766e;
+  --primary-foreground: #ffffff;
+  --secondary: #e6f4f1;
+  --secondary-foreground: #115e59;
+  --accent: #e6f4f1;
+  --accent-foreground: #115e59;
+  --ring: #5eead4;
+}
