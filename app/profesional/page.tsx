@@ -225,12 +225,12 @@ export default function ProfessionalPage() {
       <div className="mx-auto max-w-5xl">
         <nav className="mb-5 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-sm">
-              <GraduationCap className="h-5 w-5" />
+            <div className="flex w-[200px] py-3 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-sm">
+              <img src="image/logo.png" className="w-fit scale-75" alt="" />
             </div>
             <div>
               <p className="text-sm font-bold tracking-tight">
-                Akademi Trainer
+                Akademi Trainer Group
               </p>
               <p className="text-[11px] text-muted-foreground">
                 Professional Community
