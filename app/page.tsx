@@ -290,7 +290,11 @@ export default function Home() {
             <div>
               <p className="font-semibold">Data berhasil dikirim</p>
               <p className="mt-1">
-                Terima kasih. Data alumni dan rekan telah tersimpan.
+                Terima kasih telah meluangkan waktu untuk mengisi formulir
+                pendaftaran ini. Tim kami akan melakukan proses verifikasi dan
+                seleksi berdasarkan data yang telah disampaikan. Apabila
+                memenuhi kriteria yang ditetapkan, undangan resmi akan
+                dikirimkan melalui email dan/atau WhatsApp yang terdaftar.
               </p>
             </div>
           </div>
@@ -363,7 +367,7 @@ export default function Home() {
                 <SectionHeading
                   number="1"
                   title="Data alumni"
-                  description="Informasi alumni yang mengajak tiga rekan atau kolega."
+                  description="Pastikan data kontak diisi dengan benar dan aktif. Tiket akan dikirimkan ke alamat email yang terdaftar."
                   icon={<CircleUserRound className="h-5 w-5" />}
                 />
               </CardHeader>
@@ -507,7 +511,7 @@ export default function Home() {
                   <SectionHeading
                     number={String(i + 2)}
                     title={`Rekan ${i + 1}`}
-                    description="Isi data rekan atau kolega yang akan diajak."
+                    description="Isi data rekan atau kolega yang akan diajak. Pastikan data kontak diisi dengan benar dan aktif. Tiket akan dikirimkan ke alamat email yang terdaftar."
                     icon={<UsersRound className="h-5 w-5" />}
                   />
                 </CardHeader>

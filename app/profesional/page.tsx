@@ -292,7 +292,13 @@ export default function ProfessionalPage() {
             <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0" />
             <div>
               <p className="font-semibold">Data berhasil dikirim</p>
-              <p className="mt-1">Terima kasih. Telah mengisi data.</p>
+              <p className="mt-1">
+                Terima kasih telah meluangkan waktu untuk mengisi formulir
+                pendaftaran ini. Tim kami akan melakukan proses verifikasi dan
+                seleksi berdasarkan data yang telah disampaikan. Apabila
+                memenuhi kriteria yang ditetapkan, undangan resmi akan
+                dikirimkan melalui email dan/atau WhatsApp yang terdaftar.
+              </p>
             </div>
           </div>
         )}
@@ -476,7 +482,7 @@ export default function ProfessionalPage() {
                   <SectionHeading
                     number={String(i + 2)}
                     title={`Rekan ${i + 1}`}
-                    description="Isi data rekan atau kolega yang akan diajak."
+                    description="Isi data rekan atau kolega yang akan diajak. Pastikan data kontak diisi dengan benar dan aktif. Tiket akan dikirimkan ke alamat email yang terdaftar."
                     icon={<UsersRound className="h-5 w-5" />}
                   />
                 </CardHeader>
