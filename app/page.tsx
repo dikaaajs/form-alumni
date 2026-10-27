@@ -21,7 +21,6 @@ import {
   Check,
 } from "lucide-react";
 import {
-  ageOnDate,
   isValidWhatsApp,
   type Colleague,
   type Submission,
@@ -118,11 +117,6 @@ function SectionHeading({
           <span className="text-[10px] font-bold uppercase tracking-[.18em] text-primary">
             Bagian {number}
           </span>
-          {number !== "1" && (
-            <span className="rounded-full bg-secondary px-2 py-0.5 text-[10px] font-semibold text-secondary-foreground">
-              Wajib usia 18+
-            </span>
-          )}
         </div>
         <h2 className="text-xl font-bold tracking-tight sm:text-[22px]">
           {title}
@@ -148,7 +142,6 @@ export default function Home() {
   const completedFriends = form.colleagues.filter(
     (c) =>
       c.name.trim() &&
-      ageOnDate(c.birthDate) >= 18 &&
       c.occupation.trim() &&
       c.companyName.trim() &&
       c.email.trim() &&
@@ -175,16 +168,6 @@ export default function Home() {
     if (step < 3) {
       setStep((current) => Math.min(current + 1, 3));
       window.scrollTo({ top: 0, behavior: "smooth" });
-      return;
-    }
-    const underageIndex = form.colleagues.findIndex(
-      (c) => ageOnDate(c.birthDate) < 18,
-    );
-    if (underageIndex !== -1) {
-      setError(
-        `Rekan ${underageIndex + 1} harus berusia minimal 18 tahun. Periksa kembali tanggal lahir.`,
-      );
-      document.getElementById(`friend-${underageIndex + 1}-birthdate`)?.focus();
       return;
     }
     setLoading(true);
@@ -500,8 +483,6 @@ export default function Home() {
 
           {form.colleagues.map((c, i) => {
             if (step !== i + 1) return null;
-            const age = c.birthDate ? ageOnDate(c.birthDate) : null;
-            const eligible = age !== null && age >= 18;
             return (
               <Card
                 key={i}
@@ -529,40 +510,17 @@ export default function Home() {
                   </Field>
                   <Field
                     label="Tanggal lahir"
-                    required
-                    hint="Rekan wajib berusia minimal 18 tahun."
+                    hint="Opsional. Boleh dikosongkan."
                   >
                     <Input
                       id={`friend-${i + 1}-birthdate`}
-                      required
                       type="date"
                       max={today}
                       value={c.birthDate}
-                      onChange={(e) => {
-                        const value = e.target.value;
-                        updateColleague(i, "birthDate", value);
-                        // Hilangkan alert lama otomatis saat usia sudah memenuhi syarat.
-                        if (ageOnDate(value) >= 18) {
-                          setError("");
-                        }
-                      }}
+                      onChange={(e) =>
+                        updateColleague(i, "birthDate", e.target.value)
+                      }
                     />
-                    {age !== null && (
-                      <div
-                        className={`mt-2 flex items-center gap-1.5 text-xs font-medium ${eligible ? "text-emerald-700" : "text-destructive"}`}
-                      >
-                        {eligible ? (
-                          <CheckCircle2 className="h-3.5 w-3.5" />
-                        ) : (
-                          <AlertCircle className="h-3.5 w-3.5" />
-                        )}
-                        {age < 0
-                          ? "Tanggal lahir tidak valid."
-                          : eligible
-                            ? `Usia ${age} tahun — memenuhi syarat.`
-                            : `Usia ${age} tahun — belum memenuhi syarat.`}
-                      </div>
-                    )}
                   </Field>
                   <Field
                     label="Pekerjaan"
@@ -674,8 +632,8 @@ export default function Home() {
             <p>
               Semua kolom bertanda{" "}
               <span className="font-semibold text-primary">*</span> wajib diisi.
-              Ketiga rekan harus berusia minimal 18 tahun. Anda perlu
-              menyelesaikan seluruh 4 langkah sebelum data dikirim.
+              Tanggal lahir bersifat opsional. Anda perlu menyelesaikan seluruh
+              4 langkah sebelum data dikirim.
             </p>
           </div>
 
